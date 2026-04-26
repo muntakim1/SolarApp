@@ -1,0 +1,6 @@
+[submodule "admin-web"]
+	path = admin-web
+	url = https://github.com/muntakim1/SolarApp-admin.git
+[submodule "mobile-app"]
+	path = mobile-app
+	url = https://github.com/muntakim1/SolarApp-Mobile.git
