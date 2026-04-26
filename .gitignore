@@ -1,23 +1,69 @@
-admin-web/node_modules
-mobile-app/node_modules
-admin-web/.next
-admin-web/out
-mobile-app/build
-mobile-app/.expo
+# Dependencies
+node_modules/
 .pnp
 .pnp.js
+admin-web/node_modules/
+mobile-app/node_modules/
+
+# Next.js
+admin-web/.next/
+admin-web/out/
+
+# Expo/React Native
+mobile-app/.expo/
+mobile-app/build/
+mobile-app/web-build/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.jks
+
+# Environment Variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+admin-web/.env*
+mobile-app/.env*
+!admin-web/.env.example
+!mobile-app/.env.example
+
+# Debug/Logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-.env
-.env.local
-admin-web/.env
-admin-web/.env.local
-admin-web/.env.development.local
-admin-web/.env.test.local
-admin-web/.env.production.local
-mobile-app/.env
-mobile-app/.env.local
-mobile-app/.env.development.local
-mobile-app/.env.test.local
-mobile-app/.env.production.local
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# OS Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+.project
+.settings/
+.classpath
+
+# Testing
+coverage/
+.nyc_output/
+
+# Build
+dist/
+build/
