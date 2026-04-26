@@ -1,0 +1,1151 @@
+
+
+
+SolventZ
+Solar Solutions Platform
+Product Requirements Document
+Version 1.0  |  April 2025  |  CONFIDENTIAL
+
+
+Document Type
+Product Requirements Document (PRD)
+App Name
+SolventZ
+Platform
+Mobile (React Native) + Admin Web Panel (Next.js)
+Version
+1.0
+Date
+April 2025
+Status
+Draft — For Team Review
+Classification
+Confidential
+Target Team
+Engineering, Design, QA, Product
+
+
+1. Executive Summary
+SolventZ is a comprehensive solar solutions platform comprising a mobile application (Android and iOS) built with React Native and an admin web panel developed using Next.js. The platform is engineered to digitize the complete solar product sales lifecycle — from customer onboarding and product discovery through purchase, project management, and post-installation support.
+
+The application addresses a growing demand for accessible, streamlined solar energy procurement in markets where solar adoption is accelerating. SolventZ will enable customers to browse and purchase solar panels, inverters, batteries, and VED (Voltage Enhancement Devices), request on-site surveys, receive custom project quotations, track orders, and submit after-sales support tickets — all from a single, branded mobile interface.
+
+The admin web panel provides operations teams with full control over product catalog management, order processing, customer query resolution, and survey request handling, backed by real-time data from a Supabase-powered database.
+
+1.1 Business Objectives
+Digitize the end-to-end solar sales process, reducing manual effort by at least 60%
+Improve customer acquisition and retention through a seamless mobile experience
+Provide operations teams with a centralized admin hub for order and inventory management
+Enable scalable project management from survey request to installation confirmation
+Establish a foundation for AI-powered features and automation in future product iterations
+
+1.2 Success Metrics
+Metric
+Target
+Timeframe
+Mobile App Downloads
+5,000+ (first quarter)
+Q1 Post-Launch
+User Registration Rate
+40% of downloads
+Q1 Post-Launch
+Cart-to-Purchase Conversion
+>15%
+Ongoing
+Survey Request Completion
+>80% qualified leads
+Ongoing
+Support Ticket Resolution Time
+<48 hours average
+Ongoing
+Admin Order Processing Time
+<2 hours per order
+Ongoing
+
+
+2. Product Overview
+2.1 Platform Architecture Summary
+SolventZ operates as a two-tier platform with a shared Supabase backend:
+
+Component
+Technology
+Purpose
+Mobile App
+React Native (iOS + Android)
+Customer-facing product catalog, orders, surveys, support
+Admin Panel
+Next.js (Web)
+Internal dashboard for product, order, and CRM management
+Database
+Supabase (PostgreSQL)
+Centralized data store with real-time capabilities
+Authentication
+Supabase Auth
+Email/OTP login for customers; email login for admins
+API Layer
+Next.js API Routes + Supabase REST
+Server-side business logic, role-based access, integrations
+
+2.2 Team Roles and Responsibilities
+Role
+Responsibilities
+UX/UI Engineer
+Design system, screen wireframes, prototypes, accessibility compliance, design handoff
+Frontend Engineer
+React Native mobile app screens, navigation, state management, API integration
+Backend Engineer
+Next.js API routes, Supabase schema, middleware, role-based access, third-party integrations
+QA Tester
+Test plans, unit/integration/UI/performance testing, regression testing, bug reporting
+Documentation Writer
+API docs, component docs, schema diagrams, deployment guides, versioning changelog
+
+
+3. Mobile Application — Feature Specifications
+The mobile application is the primary customer-facing interface. All screens must be mobile-first, following the SolventZ design system defined in Section 6. The app must support both Android (API 21+) and iOS (13+).
+3.1 About the App / Company Info
+3.1.1 Description
+A static informational section that communicates the SolventZ brand story, mission, and key value propositions to first-time and returning users.
+3.1.2 Screen Content
+Company logo, tagline, and brand description
+Core values and mission statement
+Years of experience and project portfolio highlights
+Team overview (optional, configurable from admin panel)
+Certifications and partnership logos
+Contact information: phone, email, WhatsApp link
+Social media links
+3.1.3 Acceptance Criteria
+All text content is fetched from the admin-managed CMS section of the database — no hardcoded marketing copy
+Page loads within 2 seconds on a standard 4G connection
+All external links open in an in-app browser
+
+3.2 Authentication Module
+3.2.1 Registration Flow
+New users register with their email address and receive an OTP for verification.
+Step
+Details
+1. Email Entry
+User enters email address. Frontend validates format in real time.
+2. OTP Request
+Supabase Auth sends a 6-digit OTP to the provided email. OTP expires in 10 minutes.
+3. OTP Entry
+User enters the 6-digit code. Three failed attempts lock the account for 15 minutes.
+4. Profile Setup
+User enters: Full Name, Phone Number, City/Region. All fields required.
+5. Session Created
+Supabase returns JWT token stored securely in device keychain / SecureStore.
+
+3.2.2 Login Flow
+User enters registered email address
+Supabase sends OTP to email
+User enters OTP — authenticated on success
+Failed login after 5 attempts triggers a 30-minute lockout and admin notification
+
+3.2.3 Forgot Password / Reset
+User enters email on the Forgot Password screen
+Supabase triggers password reset email with a secure link (expires in 1 hour)
+Link opens the app via deep link to a new password creation screen
+Password must be 8+ characters, contain at least one number and one special character
+
+3.2.4 Logout
+Accessible from the profile screen and main navigation drawer
+Clears JWT token from device storage
+Invalidates Supabase session
+Redirects to the unauthenticated home/login screen
+
+3.2.5 Error States
+Invalid email format — inline validation error
+Unregistered email on login — prompt to register
+Expired OTP — 'Resend OTP' button with 60-second cooldown
+Network timeout — retry prompt with error toast
+
+3.3 Product Catalog
+The product catalog displays all available solar products grouped by category. Users can browse, filter, search, and view detailed product information before adding items to the cart.
+3.3.1 Product Categories
+Category
+Brands / Types
+Key Specs to Display
+Solar Panels
+Jolywood, Canadian Solar, German Solar, Longi
+Wattage (W), Efficiency (%), Dimensions, Warranty
+Inverters
+Sungrow, Inverex, Growatt, Fronius
+Power (kW), Phase (single/three), Input Voltage, Efficiency
+Batteries
+Water, Dry, Hybrid, Lithium-ion
+Capacity (Ah), Voltage (V), Cycle Life, Weight
+VED
+Voltage Enhancement Devices
+Input/Output Voltage, Power Rating, Protection Features
+
+3.3.2 Product Listing Screen
+Category tabs or hamburger-accessible category list at top
+Product cards with: thumbnail image, name, brand, price, stock badge (In Stock / Low Stock / Out of Stock)
+Filter options: Brand, Price Range, Wattage Range (for panels)
+Sort options: Price Low-to-High, Price High-to-Low, Newest, Best Seller
+Search bar with debounced API calls (300ms delay)
+Infinite scroll with skeleton loading states
+
+3.3.3 Product Detail Screen
+Full-resolution image carousel (pinch-to-zoom enabled)
+Product name, brand, category, SKU
+Price (with any active promotion highlighted)
+Full specifications table (fetched from database)
+Product description (rich text rendered from admin CMS)
+Stock status and estimated delivery timeline
+'Add to Cart' button (disabled if out of stock)
+'Request a Quote' link (navigates to Survey module)
+Related products carousel
+
+3.4 Shopping Cart and Checkout
+3.4.1 Cart
+Persistent cart — survives app close, stored in Supabase against user ID
+Quantity adjustment with +/- buttons; minimum quantity: 1
+Remove item with swipe gesture or delete icon
+Real-time subtotal calculation
+'Continue Shopping' and 'Proceed to Checkout' CTAs
+Empty cart state with link back to catalog
+
+3.4.2 Checkout
+#
+Step
+Description
+1
+Delivery Address
+Select saved address or enter new: Street, City, Province, Postal Code. Geocoded for delivery estimation.
+2
+Order Review
+Full item list, quantities, subtotal, estimated delivery fee, and grand total.
+3
+Payment
+Payment method selection: Bank Transfer, Cash on Delivery, or integrated payment gateway. Order is not confirmed until admin approves.
+4
+Confirmation
+Order ID generated. Confirmation screen displayed. Push notification and email sent to customer.
+
+3.4.3 Edge Cases
+Item goes out of stock after cart add — notification to user at checkout with remove or save-for-later option
+Price changes after cart add — updated price shown with notification
+Payment gateway timeout — order held in 'pending' state, user notified to retry
+
+3.5 Order Tracking
+3.5.1 Order List Screen
+All past and active orders listed in reverse chronological order
+Order card shows: Order ID, date, item count, total amount, current status badge
+Filter by status: All, Pending, Processing, Shipped, Delivered, Cancelled
+
+3.5.2 Order Detail Screen
+Full item breakdown with product images and quantities
+Delivery address and estimated delivery date
+Status timeline with timestamps (Ordered, Confirmed, Packed, Shipped, Delivered)
+Tracking number (if applicable) with deep link to courier tracking page
+Invoice download (PDF generated server-side)
+Cancellation option (available only while status is 'Pending')
+
+3.6 Project Sales Flow
+For customers seeking full solar installation projects rather than individual product purchases. This flow connects customers with the SolventZ project team.
+3.6.1 Survey Request
+Field
+Validation Rules
+Full Name
+Required. Min 3 characters.
+Phone Number
+Required. Valid format with country code.
+Email Address
+Required. Valid email format.
+Property Type
+Required. Dropdown: Residential, Commercial, Industrial, Agricultural.
+Property Address
+Required. Full address including city.
+Monthly Bill (PKR)
+Required. Numeric. Min value: 1,000.
+Preferred Survey Date
+Required. Date picker. Must be at least 2 business days in the future.
+Additional Notes
+Optional. Max 500 characters.
+
+3.6.2 Post-Survey Flow
+Admin receives survey request notification in real time
+Admin reviews and schedules the survey visit
+Customer receives push notification: 'Your survey has been scheduled for [date]'
+After site survey, admin creates and sends a project quote
+Customer views the quote in-app with breakdown: system size, components, labor, timeline
+Customer actions: Accept Quote, Request Modification, Decline
+On acceptance: Project confirmation screen with scheduled start date
+Project status tracker appears in-app (Survey, Quote, Confirmed, Scheduled, In Progress, Completed)
+
+3.7 After-Sales Support and Helpline
+3.7.1 Support Ticket System
+Category selection: Product Defect, Installation Issue, Billing Dispute, General Query
+Subject line (required, max 100 characters)
+Description (required, max 1,000 characters)
+Photo attachment (up to 3 images, max 5MB each, JPEG/PNG)
+Order ID linkage (optional — ties ticket to specific order)
+Auto-generated ticket ID on submission
+Status tracking: Open, In Review, Awaiting Customer, Resolved, Closed
+In-app messaging thread per ticket
+
+3.7.2 Helpline
+Dedicated helpline screen with click-to-call button
+WhatsApp Business deep link
+Operating hours displayed (configurable from admin panel)
+FAQ section (expandable accordion, content from database)
+
+
+4. Admin Panel — Feature Specifications
+The Admin Panel is a Next.js web application accessible only to authenticated SolventZ staff. It provides comprehensive tools for managing the entire customer and product lifecycle.
+4.1 Admin Authentication
+Email and password login using Supabase Auth
+Admin accounts are not self-registerable — created by a super admin only
+Role-based access: Super Admin, Operations Manager, Support Agent
+Session persists for 8 hours; inactivity timeout at 30 minutes
+All admin actions are logged in an audit trail table
+
+4.2 Dashboard Overview
+4.2.1 Key Metrics Cards
+Total Revenue (today / this week / this month) — filterable
+New Orders (with status breakdown bar chart)
+Registered Users (new this week)
+Active Survey Requests
+Open Support Tickets
+Low Stock Alerts
+4.2.2 Charts and Graphs
+Order volume trend (line chart, last 30 days)
+Revenue by product category (pie chart)
+Top 10 selling products (horizontal bar chart)
+Support ticket resolution rate (gauge chart)
+4.2.3 Quick Action Buttons
+Add New Product
+Process Pending Orders
+View Unread Support Tickets
+View New Survey Requests
+
+4.3 Product Management
+4.3.1 Product List
+Paginated table: 50 products per page
+Columns: SKU, Name, Category, Brand, Price, Stock, Status, Actions
+Filter by Category, Brand, Stock Status
+Bulk actions: Activate, Deactivate, Delete (soft delete)
+CSV export of product catalog
+
+4.3.2 Add/Edit Product Form
+Field
+Type
+Notes
+Product Name
+Text
+Required. Max 120 characters.
+SKU
+Text
+Auto-generated or manually entered. Must be unique.
+Category
+Dropdown
+Linked to categories table.
+Brand
+Text
+Required.
+Price (PKR)
+Number
+Required. Min 0.
+Stock Quantity
+Number
+Required. Min 0.
+Description
+Rich Text Editor
+Supports bold, italic, lists, and links.
+Specifications
+Key-Value Table
+Dynamic rows. Key and Value both text fields.
+Images
+File Upload
+Up to 8 images. Max 10MB each. Stored in Supabase Storage.
+Status
+Toggle
+Active or Inactive. Inactive products hidden from app catalog.
+
+4.3.3 Delete Product
+Soft delete: product is flagged as deleted, not removed from database
+Products tied to existing orders are preserved for order history integrity
+Hard delete available to Super Admin only, with confirmation modal
+
+4.4 Order Management
+4.4.1 Order List
+Sortable and filterable table: Order ID, Customer Name, Date, Total, Status, Actions
+Status filter: All, Pending, Processing, Packed, Shipped, Delivered, Cancelled
+Date range filter
+Search by Order ID or customer name/email
+Bulk status update
+
+4.4.2 Order Detail View
+Customer details with link to customer profile
+Full item list with product images, quantities, and line-item prices
+Delivery address with map preview
+Order timeline with editable status
+Internal admin notes field (not visible to customer)
+Invoice generation and download
+Send customer notification on status change (push + email)
+
+4.5 Customer Query Management
+All support tickets in a unified inbox view
+Filter by status, category, and date
+Assign ticket to a specific support agent
+In-app reply thread visible to customer in real time
+Resolution time tracking and SLA alerts (tickets open >48h highlighted in red)
+Close and reopen ticket functionality
+Customer satisfaction rating request triggered on ticket close
+
+4.6 Survey Request Management
+List of all incoming survey requests with status: New, Scheduled, Completed, Quote Sent, Accepted, Declined
+Schedule survey visit: assign date, time, and field agent
+Upload completed survey report (PDF)
+Create project quote with line items, system size, and payment terms
+Send quote to customer with one click
+View customer's response to quote (Accepted / Declined / Modification Requested)
+
+
+5. Authentication System
+5.1 Supabase Auth Configuration
+Email OTP authentication for mobile app customers
+Email + Password authentication for admin panel users
+JWT tokens with a 1-hour expiry and automatic refresh
+Session stored in Supabase Auth — all sessions invalidated on password change
+Row Level Security (RLS) enforced at the database level based on authenticated user identity
+
+5.2 Mobile App Session Management
+Scenario
+Behavior
+App Launch — Logged In
+JWT validated. If valid, navigate to home. If expired, attempt silent refresh.
+Silent Refresh Fails
+Navigate to login screen. Show 'Session expired' toast.
+Manual Logout
+Call Supabase signOut(). Clear local storage. Navigate to login.
+Concurrent Session
+Only one active session per user on mobile. New login invalidates previous.
+Password Reset
+All existing sessions invalidated on successful password reset.
+
+5.3 Admin Panel Security
+HTTPS enforced on all admin panel routes
+CSP headers configured on Next.js middleware
+Rate limiting: max 10 failed login attempts per IP per hour
+Audit log: every admin action recorded with user ID, action type, timestamp, and affected record ID
+2FA (TOTP) available for Super Admin accounts (Phase 2)
+
+
+6. Database Schema — Supabase (PostgreSQL)
+6.1 Schema Overview
+All tables reside in the Supabase PostgreSQL instance. Row Level Security (RLS) is enabled on all tables. UUID is used as the primary key type throughout for security and distributed compatibility.
+
+6.2 Table Definitions
+users
+Column
+Type
+Constraints
+Description
+id
+UUID
+PK, DEFAULT gen_random_uuid()
+References auth.users(id) from Supabase Auth
+full_name
+VARCHAR(150)
+NOT NULL
+Customer's full name
+email
+VARCHAR(255)
+NOT NULL, UNIQUE
+Primary contact email
+phone
+VARCHAR(20)
+NOT NULL
+Phone number with country code
+city
+VARCHAR(100)
+
+Customer's city / region
+role
+ENUM
+DEFAULT 'customer'
+Values: customer, admin, support_agent, super_admin
+is_active
+BOOLEAN
+DEFAULT TRUE
+Account status flag
+created_at
+TIMESTAMPTZ
+DEFAULT NOW()
+Account creation timestamp
+updated_at
+TIMESTAMPTZ
+DEFAULT NOW()
+Last profile update timestamp
+
+categories
+Column
+Type
+Constraints
+Description
+id
+UUID
+PK
+Category identifier
+name
+VARCHAR(100)
+NOT NULL, UNIQUE
+e.g., Solar Panels, Inverters, Batteries, VED
+slug
+VARCHAR(120)
+NOT NULL, UNIQUE
+URL-safe identifier for filtering
+icon_url
+TEXT
+
+URL to category icon in Supabase Storage
+is_active
+BOOLEAN
+DEFAULT TRUE
+Visibility toggle
+
+products
+Column
+Type
+Constraints
+Description
+id
+UUID
+PK
+Product identifier
+category_id
+UUID
+FK -> categories.id
+Product category reference
+sku
+VARCHAR(50)
+NOT NULL, UNIQUE
+Stock Keeping Unit
+name
+VARCHAR(120)
+NOT NULL
+Product display name
+brand
+VARCHAR(80)
+NOT NULL
+Manufacturer brand name
+description
+TEXT
+
+Rich text product description (HTML)
+specifications
+JSONB
+
+Key-value pairs for product specs
+price
+NUMERIC(12,2)
+NOT NULL, CHECK >= 0
+Price in PKR
+stock_quantity
+INTEGER
+NOT NULL, CHECK >= 0
+Available inventory count
+images
+TEXT[]
+
+Array of Supabase Storage URLs
+is_active
+BOOLEAN
+DEFAULT TRUE
+Active / inactive visibility
+is_deleted
+BOOLEAN
+DEFAULT FALSE
+Soft delete flag
+created_at
+TIMESTAMPTZ
+DEFAULT NOW()
+Creation timestamp
+
+orders
+Column
+Type
+Constraints
+Description
+id
+UUID
+PK
+Order identifier
+user_id
+UUID
+FK -> users.id
+Customer reference
+order_number
+VARCHAR(20)
+NOT NULL, UNIQUE
+Human-readable order number (e.g., SVZ-2025-00123)
+status
+ENUM
+NOT NULL
+pending, processing, packed, shipped, delivered, cancelled
+delivery_address
+JSONB
+NOT NULL
+Snapshot of delivery address at time of order
+payment_method
+ENUM
+NOT NULL
+bank_transfer, cod, online_payment
+payment_status
+ENUM
+DEFAULT 'unpaid'
+unpaid, paid, refunded
+subtotal
+NUMERIC(12,2)
+NOT NULL
+Total before delivery fee
+delivery_fee
+NUMERIC(10,2)
+DEFAULT 0
+Delivery charge
+grand_total
+NUMERIC(12,2)
+NOT NULL
+subtotal + delivery_fee
+admin_notes
+TEXT
+
+Internal notes — not visible to customer
+created_at
+TIMESTAMPTZ
+DEFAULT NOW()
+Order placement timestamp
+updated_at
+TIMESTAMPTZ
+DEFAULT NOW()
+Last status update
+
+order_items
+Column
+Type
+Constraints
+Description
+id
+UUID
+PK
+Line item identifier
+order_id
+UUID
+FK -> orders.id
+Parent order
+product_id
+UUID
+FK -> products.id
+Product reference (preserved even if product deleted)
+product_snapshot
+JSONB
+NOT NULL
+Snapshot of product name, SKU, and price at order time
+quantity
+INTEGER
+NOT NULL, CHECK > 0
+Quantity ordered
+unit_price
+NUMERIC(12,2)
+NOT NULL
+Price at time of purchase
+line_total
+NUMERIC(12,2)
+GENERATED (quantity * unit_price)
+Computed line total
+
+surveys
+Column
+Type
+Constraints
+Description
+id
+UUID
+PK
+Survey request identifier
+user_id
+UUID
+FK -> users.id
+Requesting customer
+full_name
+VARCHAR(150)
+NOT NULL
+Contact name for survey
+phone
+VARCHAR(20)
+NOT NULL
+Contact phone number
+property_type
+ENUM
+NOT NULL
+residential, commercial, industrial, agricultural
+address
+TEXT
+NOT NULL
+Full property address
+monthly_bill
+NUMERIC(10,2)
+NOT NULL
+Monthly electricity bill (PKR)
+preferred_date
+DATE
+NOT NULL
+Customer's preferred survey date
+notes
+TEXT
+
+Customer's additional notes
+status
+ENUM
+DEFAULT 'new'
+new, scheduled, completed, quote_sent, accepted, declined
+scheduled_at
+TIMESTAMPTZ
+
+Admin-confirmed survey appointment
+quote_amount
+NUMERIC(14,2)
+
+Project quote total (if applicable)
+quote_details
+JSONB
+
+Line-item breakdown of project quote
+created_at
+TIMESTAMPTZ
+DEFAULT NOW()
+Submission timestamp
+
+support_tickets
+Column
+Type
+Constraints
+Description
+id
+UUID
+PK
+Ticket identifier
+user_id
+UUID
+FK -> users.id
+Customer who raised the ticket
+order_id
+UUID
+FK -> orders.id, NULLABLE
+Linked order (optional)
+assigned_to
+UUID
+FK -> users.id, NULLABLE
+Admin/agent assigned to ticket
+category
+ENUM
+NOT NULL
+product_defect, installation_issue, billing, general
+subject
+VARCHAR(100)
+NOT NULL
+Ticket subject line
+description
+TEXT
+NOT NULL
+Detailed issue description
+attachments
+TEXT[]
+
+Array of image URLs (max 3)
+status
+ENUM
+DEFAULT 'open'
+open, in_review, awaiting_customer, resolved, closed
+resolved_at
+TIMESTAMPTZ
+NULLABLE
+Timestamp when ticket was resolved
+created_at
+TIMESTAMPTZ
+DEFAULT NOW()
+Ticket creation timestamp
+
+6.3 Indexing Strategy
+products: INDEX on category_id, brand, is_active, is_deleted
+orders: INDEX on user_id, status, created_at
+order_items: INDEX on order_id, product_id
+surveys: INDEX on user_id, status, created_at
+support_tickets: INDEX on user_id, status, assigned_to, created_at
+
+6.4 Row Level Security Policies
+users: Users can read and update only their own record. Admins can read all.
+products: All authenticated users can read active, non-deleted products. Only admins can insert, update, delete.
+orders: Users can read only their own orders. Admins can read and update all.
+order_items: Users can read only items belonging to their orders. Admins can read all.
+surveys: Users can read and insert their own surveys. Admins can read and update all.
+support_tickets: Users can read and insert their own tickets. Assigned agents and admins can read and update all.
+
+
+7. UI/UX Design Guidelines
+7.1 Color System
+Token
+Hex Value
+Role
+Usage
+Primary
+#FF5A5A
+Brand Core
+CTAs, active nav items, primary buttons, headings
+Secondary
+#FF8B5A
+Supporting
+Section accents, icon fills, secondary buttons
+Accent
+#FFA95A
+Warm Accent
+Highlights, badges, notification dots
+Highlight
+#FFD45A
+Attention
+Promotional banners, special tags, warnings
+Dark
+#1A1A2E
+Text/Dark BG
+Primary text, dark mode backgrounds
+Light Gray
+#F5F5F5
+Surface
+Card backgrounds, alternating table rows
+Success
+#34C759
+Positive
+Success states, stock availability
+Error
+#FF3B30
+Negative
+Error messages, destructive actions
+
+7.2 Typography
+Font Family: Inter (primary), System Default (fallback)
+Display / Hero: 32px, Bold, color: #1A1A2E
+Screen Titles: 24px, SemiBold
+Section Headings: 18px, SemiBold
+Body Text: 14px, Regular, color: #555555
+Caption / Labels: 12px, Regular, color: #888888
+Button Text: 16px, SemiBold
+
+7.3 Component Design System
+Buttons
+Primary Button: Background #FF5A5A, white text, 48px height, 8px border-radius, full-width on mobile
+Secondary Button: Border 1.5px #FF5A5A, primary text color, transparent background
+Destructive Button: Background #FF3B30, white text
+Disabled State: 50% opacity, non-interactive
+Input Fields
+Height: 48px. Border: 1px #E0E0E0. Border-radius: 8px
+Focus state: Border color changes to #FF5A5A with soft shadow
+Error state: Border color #FF3B30, error message below in 12px red text
+Cards
+Background: #FFFFFF. Border-radius: 12px. Shadow: 0 2px 8px rgba(0,0,0,0.08)
+Product cards: 160px width on grid, 220px height. Two-column grid on mobile.
+Navigation
+Bottom tab bar with 4-5 items: Home, Catalog, Cart, Orders, Profile
+Active tab: icon + label in #FF5A5A
+Inactive tab: icon in #888888, no label
+
+7.4 Accessibility
+All interactive elements minimum touch target size: 44x44pt (Apple HIG / Material Design guidelines)
+Color contrast ratio minimum 4.5:1 for normal text (WCAG AA)
+Screen reader labels (accessibilityLabel) on all icon-only buttons
+Form fields with explicit labels — no placeholder-as-label pattern
+Error messages announced via screen reader on field validation
+
+7.5 Key User Flow Wireframe Descriptions
+Onboarding Flow
+Splash Screen (2 seconds) → App intro carousel (3 slides: Solar made simple, Shop quality brands, Expert project support) → Register / Login CTA screen
+Product Purchase Flow
+Bottom Tab: Catalog → Category Selection → Product List (filter/sort) → Product Detail → Add to Cart → Cart Review → Checkout (Address → Review → Payment) → Order Confirmation → Order Tracking
+Survey Request Flow
+Home Screen 'Get a Quote' CTA → Survey Form (multi-step: personal info, property details, scheduling) → Submission Confirmation → Notification when scheduled → In-app quote review → Accept / Decline
+
+
+8. Technical Architecture
+8.1 Mobile App — React Native
+8.1.1 Folder Structure
+src/screens/ — All screen components organized by module (Auth, Catalog, Cart, Orders, Survey, Support)
+src/components/ — Shared reusable components (Button, Input, Card, Modal, Toast)
+src/navigation/ — React Navigation stack and tab definitions
+src/store/ — Redux Toolkit slices (auth, cart, products, orders, surveys)
+src/services/ — API service files (supabaseClient.ts, productService.ts, orderService.ts)
+src/hooks/ — Custom React hooks (useAuth, useCart, useOrders)
+src/utils/ — Helper functions (formatCurrency, validateEmail, generateOrderNumber)
+src/constants/ — Colors, typography, API endpoints, enums
+src/types/ — TypeScript type definitions and interfaces
+
+8.1.2 Navigation Architecture
+Root Navigator: AuthStack | AppStack based on authentication state
+AuthStack: Welcome → Login → OTP Verification → Profile Setup
+AppStack: BottomTabNavigator containing Home, CatalogStack, CartScreen, OrdersStack, ProfileStack
+CatalogStack: CategoryList → ProductList → ProductDetail
+OrdersStack: OrderList → OrderDetail
+Modals: SurveyFlow (multi-step modal), SupportTicketModal
+
+8.1.3 State Management
+Redux Toolkit for global app state: auth slice, cart slice, notification slice
+React Query (TanStack Query) for server state: product listings, order data, ticket status
+React Context for theme and locale
+Zustand for lightweight local UI state where Redux is overkill
+
+8.2 Admin Panel — Next.js
+8.2.1 App Router Structure (Next.js 14+)
+app/(auth)/login/page.tsx — Admin login
+app/(dashboard)/layout.tsx — Shared sidebar and header
+app/(dashboard)/dashboard/page.tsx — Overview metrics
+app/(dashboard)/products/page.tsx — Product list
+app/(dashboard)/products/[id]/page.tsx — Edit product
+app/(dashboard)/orders/page.tsx — Order management
+app/(dashboard)/orders/[id]/page.tsx — Order detail
+app/(dashboard)/surveys/page.tsx — Survey request handling
+app/(dashboard)/support/page.tsx — Ticket inbox
+
+8.2.2 API Routes
+POST /api/auth/login — Admin authentication
+GET /api/products — Paginated product list with filters
+POST /api/products — Create new product
+PATCH /api/products/[id] — Update product
+DELETE /api/products/[id] — Soft delete product
+GET /api/orders — Paginated order list with filters
+PATCH /api/orders/[id]/status — Update order status
+GET /api/surveys — Survey request list
+PATCH /api/surveys/[id] — Update survey (schedule, quote, status)
+GET /api/support — Support ticket inbox
+POST /api/support/[id]/reply — Send reply to support ticket
+
+8.2.3 Middleware
+Authentication middleware: validates Supabase JWT on all protected routes
+Role guard middleware: restricts actions based on admin role (super_admin, operations_manager, support_agent)
+Rate limiting middleware: 60 requests/minute per IP on public-facing API routes
+Request logging middleware: logs method, path, response time, and user ID to console/monitoring
+
+8.3 Integration Points
+Service
+Provider
+Purpose
+Push Notifications
+Expo Notifications / FCM
+Order status updates, survey scheduling, ticket replies
+Email Notifications
+Supabase Email / Resend
+OTP, order confirmation, password reset, ticket updates
+File Storage
+Supabase Storage
+Product images, support attachments, survey reports
+PDF Generation
+Puppeteer / React-PDF
+Order invoices, project quotes
+Deep Linking
+Expo Linking
+Password reset, push notification routing
+
+
+9. QA and Testing Strategy
+9.1 Testing Layers
+9.1.1 Unit Testing
+Framework: Jest + React Native Testing Library
+Coverage target: minimum 70% for all utility functions and Redux slices
+Scope: validation functions, price calculations, date formatting, Redux reducers
+
+9.1.2 Integration Testing
+Framework: Jest with Supabase test environment (separate test schema)
+Scope: API route handlers, Supabase RLS policies, auth flows
+Mocking: Supabase client mocked for unit tests; real test DB for integration
+
+9.1.3 UI / End-to-End Testing
+Framework: Detox (React Native E2E)
+Critical paths automated: Registration → Login → Browse → Add to Cart → Checkout
+Survey Request flow, Support Ticket submission
+
+9.1.4 Performance Testing
+React Native Performance Monitor: FPS tracking on product list scroll
+Target: 60fps on mid-range Android (Snapdragon 665 equivalent)
+API response time: 95th percentile under 500ms for product listing
+Supabase query explain analyze run on all queries touching >10K rows
+
+9.2 Key Test Cases
+#
+Module
+Test Case
+Expected Result
+TC-01
+Auth
+Register with valid email
+OTP sent, account created
+TC-02
+Auth
+Login with expired OTP
+Error shown, resend option active
+TC-03
+Catalog
+Filter products by brand
+Only matching brand products shown
+TC-04
+Cart
+Add out-of-stock item
+Add to Cart button disabled
+TC-05
+Cart
+Item goes OOS after cart add
+Error shown at checkout, removal prompted
+TC-06
+Checkout
+Submit order with no address
+Validation error, blocked
+TC-07
+Orders
+Cancel order in 'Processing' status
+Cancel button not visible / disabled
+TC-08
+Survey
+Submit survey with past date
+Date validation error shown
+TC-09
+Support
+Attach 4 images to ticket
+4th image rejected, max 3 shown
+TC-10
+Admin
+Support agent tries to delete product
+403 Forbidden — role-based block
+
+
+10. Documentation Requirements
+10.1 API Documentation
+Format: OpenAPI 3.0 (Swagger)
+Hosted at: /api/docs route on the admin panel domain
+Each endpoint to include: description, request schema, response schema, authentication requirements, example request/response, error codes
+Auto-generated from JSDoc comments in Next.js API route files using swagger-jsdoc
+
+10.2 Component Documentation
+Tool: Storybook for React Native (Web preview) or Docz
+Each shared component documented with: prop types, usage examples, state variants, accessibility notes
+Living document — updated with each component change
+
+10.3 Database Schema Diagrams
+Tool: dbdiagram.io or Mermaid ERD
+Diagrams for: Full schema overview, Order flow (orders + order_items), Support flow (tickets + users)
+Diagrams exported as PNG and embedded in Confluence / Notion
+
+10.4 Deployment Guide
+Step-by-step for: Supabase project setup, Next.js deployment to Vercel, React Native build (Expo EAS Build for iOS + Android)
+Environment variable reference table for all required secrets
+Post-deployment verification checklist
+
+10.5 Versioning Strategy
+Semantic versioning: MAJOR.MINOR.PATCH (e.g., 1.0.0)
+MAJOR: Breaking changes to API or DB schema
+MINOR: New features, backward compatible
+PATCH: Bug fixes, performance improvements
+CHANGELOG.md maintained in repo root — updated with every release
+
+
+11. Deployment and DevOps
+11.1 Environment Configuration
+Environment
+Purpose
+Branch
+Data
+Development
+Local dev work
+feature/* branches
+Seeded test data
+Staging
+QA and UAT testing
+develop branch
+Anonymized prod-like data
+Production
+Live customer-facing
+main branch
+Real data — PII protected
+
+11.2 CI/CD Pipeline
+Mobile App (Expo EAS)
+On PR open: lint (ESLint), type check (TypeScript), unit tests (Jest)
+On merge to develop: Expo EAS Build — internal distribution build sent to QA testers
+On merge to main: Expo EAS Build — production build submitted to App Store and Google Play
+
+Admin Panel (Next.js / Vercel)
+On PR open: ESLint, TypeScript check, Jest unit tests
+On merge to develop: Auto-deploy to Vercel staging environment
+On merge to main: Auto-deploy to Vercel production — with deployment protection (manual approval required)
+
+11.3 Hosting Strategy
+Supabase (Database + Auth + Storage): Supabase Cloud — Pro plan for production
+Admin Panel (Next.js): Vercel — production and preview deployments
+Mobile App: App Store (Apple) + Google Play Store
+Assets and Images: Supabase Storage with CDN delivery
+
+11.4 Monitoring and Logging
+Error Tracking: Sentry — integrated in both React Native app and Next.js API
+API Performance: Vercel Analytics + custom logging middleware
+Database Monitoring: Supabase built-in dashboard — query performance, connection count
+Uptime Monitoring: UptimeRobot — alerts on admin panel downtime
+Push Notification Delivery: Expo Push Receipt API — delivery confirmation logging
+
+11.5 Secrets Management
+All API keys and secrets stored in environment variables — never committed to source code
+Vercel: Secrets managed via Vercel Environment Variables dashboard
+Expo: Secrets managed via EAS Secret Store
+Supabase: Service role key accessible only in Next.js server-side code — never exposed to client
+
+
+12. Future Scope and Roadmap
+12.1 Phase 2 Features
+Feature
+Description
+Construction Services Module
+Dedicated section for full solar installation service booking, with milestone-based payment tracking.
+AI-Based Recommendations
+Personalized product recommendations based on customer's monthly bill, location, and property type using a trained ML model.
+Agentic Survey Automation
+AI agent that pre-qualifies survey leads, schedules visits automatically, and generates a draft project quote from site survey data.
+Customer Loyalty Program
+Points system for repeat purchases with discount redemption.
+Multi-Language Support
+Urdu language support for the mobile app (RTL layout).
+2FA for Admin
+TOTP-based two-factor authentication for all admin roles.
+Customer Reviews
+Product rating and review system with admin moderation.
+
+12.2 Scalability Considerations
+Supabase connection pooling via PgBouncer — enabled on Pro plan for high concurrency
+Product images served via CDN — Supabase Storage with edge caching
+Next.js API routes stateless — horizontally scalable on Vercel
+Supabase Realtime for live ticket and order status updates — replaces polling at scale
+Database partitioning strategy for orders and tickets tables when row count exceeds 1M
+
+
+13. Glossary
+Term
+Definition
+RLS
+Row Level Security — PostgreSQL feature to enforce data access at the database level
+OTP
+One-Time Password — a temporary code used for authentication
+JWT
+JSON Web Token — a signed token used to authenticate API requests
+SKU
+Stock Keeping Unit — a unique identifier for each product variant
+VED
+Voltage Enhancement Device — a device to regulate and optimize voltage supply
+CTA
+Call-to-Action — an interactive element prompting user action (e.g., Buy Now button)
+JSONB
+Binary JSON — a PostgreSQL column type for indexable JSON data
+EAS
+Expo Application Services — Expo's cloud build and submission service for React Native
+SLA
+Service Level Agreement — the agreed standard for service response times
+PRD
+Product Requirements Document — this document, defining features, architecture, and specifications
+
+
+End of Document — SolventZ PRD v1.0
+For questions about this document, contact the Product Manager.
